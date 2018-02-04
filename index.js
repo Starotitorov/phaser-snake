@@ -21,7 +21,7 @@ window.onload = function() {
         { preload: preload, create: create, update: update }
     );
 
-    var snake = new Array(3);
+    var snake = new DLL.DoublyLinkedList();
     var food;
     var cursors;
     var playerDirection = DIRECTIONS.right;
@@ -83,7 +83,7 @@ window.onload = function() {
      */
 
     function initSnake() {
-        snake = [];
+        snake = new DLL.DoublyLinkedList();
 
         for (var i = 0; i < SNAKE_INITIAL_LENGTH; ++i) {
             addSnakeHead(i * SECTION_SIZE, 0);
@@ -91,30 +91,43 @@ window.onload = function() {
     }
 
     function deleteSnake() {
-        while(snake.length > 0) {
-            var section = snake.pop();
+        var section = snake.head();
 
-            section.destroy();
+        while(section) {
+            section.data.destroy();
+
+            section = section.next;
         }
+
+        snake = new DLL.DoublyLinkedList();
     }
 
     function addSnakeHead(x, y) {
         var newSnakeHead = game.add.sprite(x, y, 'player', playerDirection);
 
-        if (snake.length === 0) {
-            return snake.push(newSnakeHead);
+        if (snake.size() === 0) {
+            return snake.append(newSnakeHead);
         }
 
-        var oldSnakeHeadSection = game.add.sprite(snake[0].position.x, snake[0].position.y, 'player', 4);
+        var oldHead = snake.head();
+        var oldSnakeHeadSection = game.add.sprite(
+            oldHead.data.position.x,
+            oldHead.data.position.y,
+            'player',
+            4
+        );
 
-        var deleted = snake.splice(0, 1, newSnakeHead, oldSnakeHeadSection);
+        oldHead.remove();
+        oldHead.data.destroy();
 
-        deleted[0].destroy();
+        snake.prepend(oldSnakeHeadSection);
+        snake.prepend(newSnakeHead);
     }
 
     function removeSnakeTail() {
-        var tail = snake.pop();
-        tail.destroy();
+        var tail = snake.tail();
+        tail.remove();
+        tail.data.destroy();
     }
 
     /**
@@ -138,17 +151,35 @@ window.onload = function() {
      */
 
     function checkAppleSnakeCollision() {
-        return snake.some(function(section) {
-            return food.position.x === section.position.x && food.position.y === section.position.y;
-        })
+        var section = snake.head();
+
+        while(section) {
+            if (food.position.x === section.data.position.x &&
+                food.position.y === section.data.position.y) {
+                return true;
+            }
+
+            section = section.next;
+        }
+
+        return false;
     }
 
     function checkSnakeHeadCollision() {
-        var head = snake[0];
+        var head = snake.head();
+        var headSection = head.data;
+        var section = head.next;
 
-        return snake.slice(1).some(function(section) {
-            return section.position.x === head.position.x && section.position.y === head.position.y;
-        });
+        while (section) {
+            if (section.data.position.x === headSection.position.x &&
+                section.data.position.y === headSection.position.y) {
+                return true;
+            }
+
+            section = section.next;
+        }
+
+        return false;
     }
 
     /**
@@ -171,8 +202,9 @@ window.onload = function() {
     }
 
     function movePlayer() {
-        var x = snake[0].position.x;
-        var y = snake[0].position.y;
+        var head = snake.head();
+        var x = head.data.position.x;
+        var y = head.data.position.y;
 
         if (playerDirection === DIRECTIONS.right) {
             x += SECTION_SIZE;
