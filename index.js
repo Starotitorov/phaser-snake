@@ -11,7 +11,6 @@ window.onload = function() {
     var SNAKE_INITIAL_LENGTH = 3;
     var DIRECTIONS = Object.freeze({ up: 0, down: 2, right: 3, left: 1 });
     var GAME_SPEED = 20;
-    var GAME_OVER_MESSAGE = 'The game is over! Try again.';
 
     var game = new Phaser.Game(
         CANVAS_WIDTH,
@@ -26,9 +25,11 @@ window.onload = function() {
     var cursors;
     var playerDirection = DIRECTIONS.right;
     var frameCounter = 0;
+    var score = 0;
+    var scoreText;
 
     /**
-     * Phaser
+     * Game
      */
 
     function preload() {
@@ -44,6 +45,15 @@ window.onload = function() {
 
         placeRandomApple();
 
+        score = 0;
+        scoreText = game.add.text(
+            CANVAS_WIDTH,
+            0,
+            'Score: ' + score,
+            { fontSize: '28px', fill: '#fff' }
+        );
+        scoreText.anchor.setTo(1, 0);
+
         cursors = game.input.keyboard.createCursorKeys();
     }
 
@@ -55,19 +65,13 @@ window.onload = function() {
             movePlayer();
 
             if (checkSnakeHeadCollision()) {
-                alert(GAME_OVER_MESSAGE);
+                renderGameOverMessage();
 
-                deleteSnake();
-                initSnake();
-
-                playerDirection = DIRECTIONS.right;
-
-                frameCounter = 0;
-
-                return;
+                return resetGame();
             }
 
             if (checkAppleSnakeCollision()) {
+                score++;
                 food.destroy();
                 placeRandomApple();
             } else if (playerDirection !== undefined) {
@@ -76,6 +80,24 @@ window.onload = function() {
 
             frameCounter = 0;
         }
+
+        scoreText.text = 'Score: ' + score;
+        scoreText.bringToTop();
+    }
+
+    function renderGameOverMessage() {
+        alert('The game is over! Score: ' + score + '.');
+    }
+
+    function resetGame() {
+        deleteSnake();
+        initSnake();
+
+        score = 0;
+
+        playerDirection = DIRECTIONS.right;
+
+        frameCounter = 0;
     }
 
     /**
