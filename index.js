@@ -10,7 +10,7 @@ window.onload = function() {
     var CANVAS_WIDTH = SECTION_SIZE * CANVAS_WIDTH_SECTIONS_LENGTH;
     var SNAKE_INITIAL_LENGTH = 3;
     var DIRECTIONS = Object.freeze({ up: 0, down: 2, right: 3, left: 1 });
-    var GAME_SPEED = 20;
+    var GAME_SPEED = 10;
 
     var game = new Phaser.Game(
         CANVAS_WIDTH,
