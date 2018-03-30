@@ -10,7 +10,7 @@ window.onload = function() {
     var CANVAS_WIDTH = SECTION_SIZE * CANVAS_WIDTH_SECTIONS_LENGTH;
     var SNAKE_INITIAL_LENGTH = 3;
     var DIRECTIONS = Object.freeze({ up: 0, down: 2, right: 3, left: 1 });
-    var GAME_SPEED = 10;
+    var GAME_SPEED = 6;
 
     var game = new Phaser.Game(
         CANVAS_WIDTH,
@@ -24,6 +24,7 @@ window.onload = function() {
     var food;
     var cursors;
     var playerDirection = DIRECTIONS.right;
+    var directionCandidate = DIRECTIONS.right;
     var frameCounter = 0;
     var score = 0;
     var scoreText;
@@ -58,10 +59,11 @@ window.onload = function() {
     }
 
     function update() {
-        updateDirection();
+        updateDirectionCandidate();
         frameCounter++;
 
         if (frameCounter === GAME_SPEED) {
+            updateDirection();
             movePlayer();
 
             if (checkSnakeHeadCollision()) {
@@ -96,6 +98,7 @@ window.onload = function() {
         score = 0;
 
         playerDirection = DIRECTIONS.right;
+        directionCandidate = DIRECTIONS.right;
 
         frameCounter = 0;
     }
@@ -208,18 +211,24 @@ window.onload = function() {
      * Movement
      */
 
+    function updateDirectionCandidate() {
+        if (cursors.right.isDown) {
+            directionCandidate = DIRECTIONS.right;
+        } else if (cursors.left.isDown) {
+            directionCandidate = DIRECTIONS.left;
+        } else if (cursors.up.isDown) {
+            directionCandidate = DIRECTIONS.up;
+        } else if (cursors.down.isDown) {
+            directionCandidate = DIRECTIONS.down;
+        }
+    }
+
     function updateDirection() {
-        if (cursors.right.isDown && playerDirection !== DIRECTIONS.left) {
-            playerDirection = DIRECTIONS.right;
-        }
-        if (cursors.left.isDown && playerDirection !== DIRECTIONS.right) {
-            playerDirection = DIRECTIONS.left;
-        }
-        if (cursors.up.isDown && playerDirection !== DIRECTIONS.down) {
-            playerDirection = DIRECTIONS.up;
-        }
-        if (cursors.down.isDown && playerDirection !== DIRECTIONS.up) {
-            playerDirection = DIRECTIONS.down;
+        if ((playerDirection === DIRECTIONS.right && directionCandidate !== DIRECTIONS.left) ||
+            (playerDirection === DIRECTIONS.left && directionCandidate !== DIRECTIONS.right) ||
+            (playerDirection === DIRECTIONS.up && directionCandidate !== DIRECTIONS.down) ||
+            (playerDirection === DIRECTIONS.down && directionCandidate !== DIRECTIONS.up)) {
+            playerDirection = directionCandidate;
         }
     }
 
